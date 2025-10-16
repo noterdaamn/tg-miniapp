@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <h3>Управление кабинетами</h3>
+  <form id="dataForm">
+    Корпус: <input type="text" id="building" required><br>
+    Кабинет: <input type="text" id="room" required><br>
+    IP-адрес: <input type="text" id="ip" required><br>
+    <button type="submit">Добавить</button>
+  </form>
+  <hr>
+  <div id="list"></div>
+
+  <script>
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbzZZRHbKBrQ5tSIsd5nu-t-INM5t15BwPTZI5eqg_PpCgSjo90sM3Gm8py6nUS6-HnfGA/exec';
+
+    function fetchList() {
+      fetch(`${apiUrl}?action=list`)
+        .then(res => res.json())
+        .then(data => {
+          const listDiv = document.getElementById('list');
+          listDiv.innerHTML = data.map(item =>
+            `<div>
+               ${item.id}. ${item.building} - ${item.room} - ${item.ip} 
+               <button onclick="deleteItem(${item.id})">Удалить</button>
+             </div>`).join('');
+        });
+    }
+
+    function deleteItem(id) {
+      fetch(`${apiUrl}?action=delete&id=${id}`)
+        .then(() => fetchList());
+    }
+
+    document.getElementById('dataForm').onsubmit = function(e) {
+      e.preventDefault();
+      const building = document.getElementById('building').value;
+      const room = document.getElementById('room').value;
+      const ip = document.getElementById('ip').value;
+      fetch(`${apiUrl}?action=add&building=${encodeURIComponent(building)}&room=${encodeURIComponent(room)}&ip=${encodeURIComponent(ip)}`)
+        .then(() => {
+          fetchList();
+          this.reset();
+        });
+    }
+
+    // Загрузка списка при открытии
+    fetchList();
+  </script>
+</body>
+</html>
